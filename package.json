@@ -1,0 +1,34 @@
+{
+  "name": "emby.theater",
+  "productName": "Emby Theater",
+  "version": "2.5.32",
+  "description": "Emby Theater for Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MediaBrowser/Emby.Theater.Electron.git"
+  },
+  "keywords": [
+    "Electron",
+    "Emby",
+    "Theater"
+  ],
+  "author": "GitHub",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MediaBrowser/Emby.Theater.Electron/issues"
+  },
+  "homepage": "https://github.com/MediaBrowser/Emby.Theater.Electron#readme",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.7",
+    "power-off": "^1.0.1",
+    "sleep-mode": "^1.1.0"
+  },
+  "dependencies": {
+    "power-off": "^1.0.1",
+    "sleep-mode": "^1.1.0"
+  }
+}

@@ -1,1 +1,1 @@
-# emby-theater-pi
+# Emby.Theater.Electron
