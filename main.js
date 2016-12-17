@@ -8,7 +8,6 @@
     // be closed automatically when the JavaScript object is garbage collected.
     var mainWindow = null;
     var hasAppLoaded = false;
-    var enableSplash = true;
 
     // Quit when all windows are closed.
     app.on('window-all-closed', function () {
@@ -342,8 +341,6 @@
         return str.split(find).join(replace);
     }
 
-    var firstDomDone;
-
     function getAppBaseUrl() {
 
         var url = 'https://tv.emby.media';
@@ -361,12 +358,12 @@
 
     function setStartInfo() {
 
-        if (!firstDomDone) {
-            firstDomDone = true;
+        //if (!firstDomDone) {
+        //    firstDomDone = true;
 
-            mainWindow.loadURL(getAppUrl());
-            return;
-        }
+        //    mainWindow.loadURL(getAppUrl());
+        //    return;
+        //}
 
         var os = require("os");
 
@@ -493,8 +490,8 @@
         //        return "dictate-or-command-control-toggle";
         //    default:
         //        return "unknown";
-
-        if (cmd != 'Unknown') {
+                
+                if (cmd != 'Unknown') {
             //alert(cmd);
         }
 
@@ -721,20 +718,12 @@
         //mainWindow.openDevTools();
         mainWindow.webContents.on('dom-ready', setStartInfo);
 
-        var url = enableSplash ?
-            'file://' + __dirname + '/splash.html' :
-            getAppUrl();
-
-        if (!enableSplash) {
-            firstDomDone = true;
-        }
-
         windowStateOnLoad = previousWindowInfo.state;
 
         addPathIntercepts();
 
         // and load the index.html of the app.
-        mainWindow.loadURL(url);
+        mainWindow.loadURL(getAppUrl());
 
         mainWindow.setMenu(null);
         mainWindow.on('move', onWindowMoved);
@@ -753,6 +742,13 @@
         registerFileSystem();
         registerServerdiscovery();
 
+        var playbackhandler = require('./playbackhandler/playbackhandler');
+        playbackhandler.registerMediaPlayerProtocol(electron.protocol);
+
         initCec();
+
+        mainWindow.setFullScreen(true);
+        mainWindow.setAlwaysOnTop(true);
+
     });
 })();
