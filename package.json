@@ -1,6 +1,6 @@
 {
   "name": "emby.theater",
-  "productName": "Emby Theater",
+  "productName": "Emby Theater Pi",
   "version": "2.5.32",
   "description": "Emby Theater for Electron",
   "main": "main.js",
