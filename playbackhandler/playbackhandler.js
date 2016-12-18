@@ -1,8 +1,10 @@
 
 function play(playData, callback) {
-	
+
+    console.log('Play Data : ' + playData);
     var playData = JSON.parse(playData);
-    console.log('Play URL : ' + playData);
+    console.log('Play URL : ' + playData.url);
+    console.log('Play StartTime : ' + playData.startTime);
 	
     var args = ["--alpha", "127", "--pos", playData.startTime, playData.url];
     //args = ["--win", "0 0 300 300", "--alpha", "127", "--pos", playData.startTime, playData.url];

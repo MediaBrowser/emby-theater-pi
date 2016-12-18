@@ -223,6 +223,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
 
         self.destroy = function () {
             //alert("destroy");
+            embyRouter.setTransparency('none');
         };
 
         self.pause = function () {
