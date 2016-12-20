@@ -592,13 +592,15 @@
 
     function supportsTransparentWindow() {
 
+		return false;
+		/*
         if (process.platform !== 'win32') {
             return true;
         }
-
         return commandLineArguments[1] == 'true';
+		*/
     }
-
+	
     function getWindowStateDataPath() {
 
         var path = require("path");
@@ -622,10 +624,12 @@
 
     var commandLineArguments = process.argv.slice(2);
 
+	/*
     if (commandLineArguments.length > 0) {
         app.setPath('userData', commandLineArguments[0]);
     }
-
+	*/
+	
     function onCecCommand(cmd) {
         console.log("Command received: " + cmd);
         sendCommand(cmd);
@@ -636,7 +640,7 @@
 
         try {
             const cec = require('./cec/cec');
-            var cecExePath = commandLineArguments[2];
+            var cecExePath = commandLineArguments[0];
             // create the cec event
             const EventEmitter = require("events").EventEmitter;
             var cecEmitter = new EventEmitter();

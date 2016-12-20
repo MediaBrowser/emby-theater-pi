@@ -22,11 +22,11 @@ var initialized = false;    // indicates if the CEC module is initialized
 var ignoreInit = false;
 
 function init(args) {
-    console.log("Initializing cec-client...\n");
+    console.log("Initializing cec-client");
     console.log(args);
     var cecExePath = args.cecExePath;
     if (!args.cecExePath) {
-        console.log("ERROR: cec-client not installed, running without cec functionality.\n");
+        console.log("No cec-client specified, running without cec functionality.");
         return;
     }
     // register the emitter
@@ -45,7 +45,7 @@ function init(args) {
     );
     // if cec-client is not installed, then we run the app normally
     cecProcess.on("error", function(err) {
-        console.log("ERROR: cec-client not installed, running without cec functionality.");
+        console.log("ERROR: cec-client failed, running without cec functionality.");
         console.log(err);
     });
     registerEvents(cecProcess);
