@@ -642,7 +642,8 @@
             var cecEmitter = new EventEmitter();
             var cecOpts = {
                 cecExePath: cecExePath,
-                cecEmitter: cecEmitter
+                cecEmitter: cecEmitter,
+				cecIgnoreInit: true
             };
             cec.init(cecOpts);
 

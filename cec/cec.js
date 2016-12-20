@@ -19,6 +19,7 @@ var
 ;
 
 var initialized = false;    // indicates if the CEC module is initialized
+var ignoreInit = false;
 
 function init(args) {
     console.log("Initializing cec-client...\n");
@@ -32,6 +33,8 @@ function init(args) {
     cecEmitter = args.cecEmitter;
     // testEventEmitter();
 
+    ignoreInit = args.cecIgnoreInit;
+    
     // spawn the cec-client
     cecProcess = child_process.spawn(cecExePath,
         [
@@ -98,53 +101,63 @@ function registerEvents(cecProcess) {
     // create pipelines for the cec-client process
     var remoteButton = {};    // 0 is not pressed, 1 is pressed
     cecProcess.stdout.on("data", function(data) {
-        // console.log("cec-client:\n" + data);
-        // check for initialization
-        if (!initialized) {
-            var dataAsString = data.toString().replace(/\s+/g, "");
-            var indexOfAdapter = dataAsString.includes("CECclientregistered");
-            if (indexOfAdapter) {
-                console.log("\nCEC Client successfully registered.\n");
-                var initVals = dataAsString.split(",");
-                var cecAdapterVals = initVals[4].split("(");
-                var cecBaseVals = initVals[5].split("(");
-                CEC_ADAPTER.device = cecAdapterVals[1].substr(4);
-                CEC_ADAPTER.lAddr = cecAdapterVals[2][0];
-                CEC_BASE.device = cecBaseVals[0].substr(11);
-                CEC_BASE.lAddr = cecBaseVals[1][0];
-                console.log("CEC Adapter Device:\t" + JSON.stringify(CEC_ADAPTER, null, "  "));
-                console.log("CEC Base Device:\t" + JSON.stringify(CEC_BASE, null, "  "));
-                initialized = true;
-                // run after-init functions here:
-                testTVOn(cecProcess);
-                testSetActive(cecProcess);
-            }
-            return; // don't execute any other functions until initialized
-        }
-        // check for remote commands
-        if (data.toString().includes(">>")) {
-            var cecCmd = data.toString().split(">>")[1].replace(/\s+/g, "").split(":");
-            // console.log(cecCmd);
-            if (cecCmd[0][0] == CEC_BASE.lAddr && cecCmd[0][1] == CEC_ADAPTER.lAddr) {  // device => adapter
-                if (cecCmd[1] == "44") {    // key pressed
-                    console.log("remote control button pressed");
-                    remoteButton.state = 1;
-                    remoteButton.cmd = cecCmd[2];
-                    parseCmd(remoteButton.cmd, cecEmitter);
+        // console.log("cec-client: " + data);
+        try {
+            logStream = fs.createWriteStream(logFile, {"flags": "a"});
+            logStream.write(data);
+            logStream.end();
+
+            // check for initialization
+            if (!ignoreInit && !initialized) {
+                var dataAsString = data.toString().replace(/\s+/g, "");
+                var indexOfAdapter = dataAsString.includes("CECclientregistered");
+                if (indexOfAdapter) {
+                    console.log("\nCEC Client successfully registered.\n");
+                    var initVals = dataAsString.split(",");
+                    var cecAdapterVals = initVals[4].split("(");
+                    var cecBaseVals = initVals[5].split("(");
+                    CEC_ADAPTER.device = cecAdapterVals[1].substr(4);
+                    CEC_ADAPTER.lAddr = cecAdapterVals[2][0];
+                    CEC_BASE.device = cecBaseVals[0].substr(11);
+                    CEC_BASE.lAddr = cecBaseVals[1][0];
+                    console.log("CEC Adapter Device:\t" + JSON.stringify(CEC_ADAPTER, null, "  "));
+                    console.log("CEC Base Device:\t" + JSON.stringify(CEC_BASE, null, "  "));
+                    initialized = true;
+                    // run after-init functions here:
+                    testTVOn(cecProcess);
+                    testSetActive(cecProcess);
                 }
-                else if (cecCmd[1] == "45") {    // key released
-                    console.log("remote control button released");
-                    remoteButton.state = 0;
+                return; // don't execute any other functions until initialized
+            }
+            
+            // check for remote commands
+            if (data.toString().includes(">>")) {
+
+                var cecCmd = data.toString().split(">>")[1].replace(/\s+/g, "").split(":");
+                // console.log("cec-client cmd: " + cecCmd);
+                if (ignoreInit || (cecCmd[0][0] == CEC_BASE.lAddr && cecCmd[0][1] == CEC_ADAPTER.lAddr)) {  // device => adapter
+                    if (cecCmd[1] == "44") {    // key pressed
+                        console.log("cec-client button pressed: " + cecCmd[2]);
+                        remoteButton.state = 1;
+                        remoteButton.cmd = cecCmd[2];
+                        parseCmd(remoteButton.cmd, cecEmitter);
+                    }
+                    else if (cecCmd[1] == "45") {    // key released
+                        console.log("cec-client button released: " + cecCmd[2]);
+                        remoteButton.state = 0;
+                    }
                 }
             }
         }
-        logStream = fs.createWriteStream(logFile, {"flags": "a"});
-        logStream.write(data);
-        logStream.end();
+        catch(e) {
+            logStream = fs.createWriteStream(logFile, {"flags": "a"});
+            logStream.write(cec-client error: " + e);
+            logStream.end();
+        }
     });
 
     cecProcess.stderr.on("data", function(data) {
-        console.log("cec-client error:\n" + data);
+        console.log("cec-client error: " + data);
         logStream = fs.createWriteStream(logFile, {"flags": "a"});
         logStream.write(data);
         logStream.end();
