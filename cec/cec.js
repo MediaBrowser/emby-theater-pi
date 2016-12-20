@@ -45,8 +45,8 @@ function init(args) {
     );
     // if cec-client is not installed, then we run the app normally
     cecProcess.on("error", function(err) {
-        console.log("ERROR: cec-client not installed, running without cec functionality.\n");
-        // console.log(err);
+        console.log("ERROR: cec-client not installed, running without cec functionality.");
+        console.log(err);
     });
     registerEvents(cecProcess);
 }
@@ -151,7 +151,7 @@ function registerEvents(cecProcess) {
         }
         catch(e) {
             logStream = fs.createWriteStream(logFile, {"flags": "a"});
-            logStream.write(cec-client error: " + e);
+            logStream.write("cec-client error: " + e);
             logStream.end();
         }
     });
