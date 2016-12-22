@@ -178,6 +178,11 @@ function set_alpha(data) {
     });
 }
 
+function get_audio_tracks(callback) {
+	
+	callback("1:eng:long:test");
+}
+
 function processRequest(request, callback) {
 	
     //console.log("request url : " + request.url);
@@ -216,7 +221,10 @@ function processRequest(request, callback) {
             break; 
         case 'resume':
             resume();
-            break;                           
+            break; 
+        case 'get_audio_tracks':	
+            get_audio_tracks(callback);
+            break;			
         default:
             console.log('playbackhandler:processRequest action unknown : ' + action);
             callback("");

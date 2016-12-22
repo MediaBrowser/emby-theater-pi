@@ -11,7 +11,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         self.id = 'linuxmediaplayer';
         self.requiresVideoTransparency = true;
 
-        var currentSrc;
+		var currentPlayOptions = null;
         var playbackPosition = 0;
         var timeUpdateInterval;
 
@@ -151,24 +151,26 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         };
 
         self.currentSrc = function () {
-            //alert("currentSrc");
-            return currentSrc;
+            //alert(currentPlayOptions.url);
+			if(currentPlayOptions == null) {
+				return "";
+			}
+			else {
+				return currentPlayOptions.url;
+			}
         };
 
         self.play = function (options) {
             //alert("Play")
-			
-            var mediaSource = JSON.parse(JSON.stringify(options.mediaSource));
+            //var mediaSource = JSON.parse(JSON.stringify(options.mediaSource));
 
-            var url = options.url;
-
-            if(currentSrc == url) {
+            if(currentPlayOptions != null && currentPlayOptions.url == options.url) {
                 // we are already playing this file so just set position
                 // need this in microseconds
                 sendData("set_position", (options.playerStartPositionTicks / 10));
             }
             else {
-                currentSrc = url;
+				currentPlayOptions = options;
 
                 //var isVideo = options.mimeType.toLowerCase('video').indexOf() == 0;
                 //var isVideo = options.item.MediaType == 'Video';
@@ -178,7 +180,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
                 var startTimeString = startTime.toISOString().substr(11, 8);
                 
                 var playRequest = {
-                    url: url,
+                    url: options.url,
                     startTime: startTimeString
                 };
                 var playData = JSON.stringify(playRequest);
@@ -216,7 +218,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         self.stop = function (destroyPlayer, reportEnded) {
             //alert("stop");
             stopTimeUpdateInterval();
-            currentSrc = "";
+			currentPlayOptions = null;
             events.trigger(self, 'stopped');
             sendData("stop");
         };
@@ -257,7 +259,31 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         };
 
         self.setAudioStreamIndex = function (index) {
+			sendData("get_audio_tracks", "", processAudioTrackChange, index);
         };
+		
+		function processAudioTrackChange(trackData, index) {
+			
+			alert(index);
+			alert(trackData);
+			
+			var streams = currentPlayOptions.mediaSource.MediaStreams || [];
+			var audioIndex = -1;
+			var i, stream;
+            for (i = 0; i < streams.length; i++) {
+                stream = streams[i];
+                if (stream.Type === 'Audio') {
+                    audioIndex++;
+
+                    if (stream.Index === index) {
+                        break;
+                    }
+                }
+			}
+			
+			alert(stream);
+		}
+		
 
         self.canSetAudioStreamIndex = function () {
             return true;
@@ -299,7 +325,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
             console.log(data);
         }
 
-        function sendData(action, sendData, callback) {
+        function sendData(action, sendData, callback, callbackData) {
             var encodedSendData = "";
             if(sendData) {
                 encodedSendData = encodeURIComponent(sendData.toString());
@@ -311,7 +337,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
             if (this.response) {
                 var data = this.response;
                 if(callback) {
-                    callback(data);
+					callback(data, callbackData);
                 }
             }};
             xhr.send();
