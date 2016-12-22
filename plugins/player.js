@@ -28,8 +28,13 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         }); 
 
         self.canPlayMediaType = function (mediaType) {
-            //alert("canPlayMediaType");		
-            return true;
+            //alert("canPlayMediaType");            
+            if ((mediaType || '').toLowerCase() == 'video') {
+                return true;
+            }
+            else {
+                return false;
+            }
         };
         
         self.canPlayItem = function (item) {
