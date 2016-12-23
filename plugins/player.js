@@ -11,17 +11,17 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         self.id = 'linuxmediaplayer';
         self.requiresVideoTransparency = true;
 
-		var currentPlayOptions = null;
+        var currentPlayOptions = null;
         var playbackPosition = 0;
         var timeUpdateInterval;
 
-       	document.addEventListener('video-osd-show', function () {
+        document.addEventListener('video-osd-show', function () {
             //alert("OSD Shown");
             startTimeUpdateInterval(1000);
             sendData("set_alpha", 127);
         });
         
-       	document.addEventListener('video-osd-hide', function () {
+        document.addEventListener('video-osd-hide', function () {
             //alert("OSD Hidden");
             startTimeUpdateInterval(10000);
             sendData("set_alpha", 255);
@@ -45,7 +45,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
 
         self.getDeviceProfile = function () {
             //alert("getDeviceProfile");
-			
+            
             var profile = {};
 
             profile.MaxStreamingBitrate = 100000000;
@@ -157,12 +157,12 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
 
         self.currentSrc = function () {
             //alert(currentPlayOptions.url);
-			if(currentPlayOptions == null) {
-				return "";
-			}
-			else {
-				return currentPlayOptions.url;
-			}
+            if(currentPlayOptions == null) {
+                return "";
+            }
+            else {
+                return currentPlayOptions.url;
+            }
         };
 
         self.play = function (options) {
@@ -175,7 +175,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
                 sendData("set_position", (options.playerStartPositionTicks / 10));
             }
             else {
-				currentPlayOptions = options;
+                currentPlayOptions = options;
 
                 //var isVideo = options.mimeType.toLowerCase('video').indexOf() == 0;
                 //var isVideo = options.item.MediaType == 'Video';
@@ -211,9 +211,9 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
 
         self.currentTime = function (val) {
             //alert("currentTime");
-			
+            
             if (val != null) {
-            	alert("currentTime: " + val);
+                alert("currentTime: " + val);
                 sendData("set_position", val * 1000);
                 return;
             }
@@ -230,7 +230,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         self.stop = function (destroyPlayer, reportEnded) {
             //alert("stop");
             stopTimeUpdateInterval();
-			currentPlayOptions = null;
+            currentPlayOptions = null;
             events.trigger(self, 'stopped');
             sendData("stop");
         };
@@ -271,16 +271,16 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         };
 
         self.setAudioStreamIndex = function (index) {
-			sendData("get_audio_tracks", "", processAudioTrackChange, index);
+            sendData("get_audio_tracks", "", processAudioTrackChange, index);
         };
-		
-		function processAudioTrackChange(trackData, index) {
-			var mediaSource = JSON.parse(trackData);
-			//alert(mediaSource);
-			
-			var streams = currentPlayOptions.mediaSource.MediaStreams || [];
-			var audioIndex = -1;
-			var i, stream;
+        
+        function processAudioTrackChange(trackData, index) {
+            var mediaSource = JSON.parse(trackData);
+            //alert(mediaSource);
+            
+            var streams = currentPlayOptions.mediaSource.MediaStreams || [];
+            var audioIndex = -1;
+            var i, stream;
 
             for (i = 0; i < streams.length; i++) {
                 stream = streams[i];
@@ -291,17 +291,17 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
                         break;
                     }
                 }
-			}
-			
-			stream = mediaSource[audioIndex];
-			
-			if (stream) {
-				//alert(JSON.stringify(stream));
-				sendData("set_audio_track", stream["id"]);
-			}
+            }
+            
+            stream = mediaSource[audioIndex];
+            
+            if (stream) {
+                //alert(JSON.stringify(stream));
+                sendData("set_audio_track", stream["id"]);
+            }
 
-		}
-		
+        }
+        
 
         self.canSetAudioStreamIndex = function () {
             return true;
@@ -326,7 +326,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
                 timeUpdateInterval = null;
             }
         }
-		
+        
         function onTimeUpdate() {
             //alert("onTimeUpdate");
             sendData("get_position", false, updatePlayerPosition);
@@ -338,7 +338,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
             events.trigger(self, 'timeupdate');
         }
         
-        		
+                
         function setCurrentPos(data) {
             console.log(data);
         }
@@ -355,11 +355,11 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
             if (this.response) {
                 var data = this.response;
                 if(callback) {
-					callback(data, callbackData);
+                    callback(data, callbackData);
                 }
             }};
             xhr.send();
         }
-		
+        
     }
 });

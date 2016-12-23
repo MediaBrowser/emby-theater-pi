@@ -131,7 +131,7 @@ function get_position(callback) {
             //console.log('get_position Data: ' + bits[1]);
             callback(bits[1]);
         }
-    });     	
+    });         
 }
 
 function set_position(data) {
@@ -212,41 +212,40 @@ function runCommand(process, command, args, env, callback, tryCount) {
         }
         else {
             console.log('Process stdout: ' + stdout);
-		var start = stdout.indexOf("[");
-		var end = stdout.indexOf("]");
-		if(start > 0 && end > 0 && start < end) {
-			var arrayData = stdout.substring(start+1, end);
-			var streams = [];
-			var lines = arrayData.split("\n");
-			var x;
-			for(x = 0; x < lines.length; x++) {
-				var line = lines[x].trim();
-				if(line.length > 0) {
-					var lineSplit = line.split("\"");
-					console.log(lineSplit);
-					if(lineSplit.length == 3) {
-						var data = lineSplit[1];
-						console.log(data);
-						var bits = data.split(":");
-						var stream = {};
-						stream.id = bits[0];
-						stream.lang = bits[1];
-						stream.name = bits[2];
-						stream.codec = bits[3];
-						stream.active = bits[4];
-						streams.push(stream);
+			var start = stdout.indexOf("[");
+			var end = stdout.indexOf("]");
+			if(start > 0 && end > 0 && start < end) {
+				var arrayData = stdout.substring(start+1, end);
+				var streams = [];
+				var lines = arrayData.split("\n");
+				var x;
+				for(x = 0; x < lines.length; x++) {
+					var line = lines[x].trim();
+					if(line.length > 0) {
+						var lineSplit = line.split("\"");
+						console.log(lineSplit);
+						if(lineSplit.length == 3) {
+							var data = lineSplit[1];
+							console.log(data);
+							var bits = data.split(":");
+							var stream = {};
+							stream.id = bits[0];
+							stream.lang = bits[1];
+							stream.name = bits[2];
+							stream.codec = bits[3];
+							stream.active = bits[4];
+							streams.push(stream);
+						}
 					}
 				}
+			
+				var jsonData = JSON.stringify(streams);
+				console.log(jsonData);
+				callback(jsonData);
 			}
-		
-			var jsonData = JSON.stringify(streams);
-			console.log(jsonData);
-			callback(jsonData);
-
-		}
-		else {
-			return;
-		}
+			else {
+				return;
+			}
         }
     }); 
 }
@@ -281,7 +280,7 @@ function sleep(time) {
 }
 
 function processRequest(request, callback) {
-	
+    
     //console.log("request url : " + request.url);
     var url = require('url');
     var url_parts = url.parse(request.url, true);
@@ -290,19 +289,19 @@ function processRequest(request, callback) {
     switch (action) {
 
         case 'play':
-            var data = url_parts.query["data"];			
+            var data = url_parts.query["data"];         
             play(data, callback);
             callback("Play Action");
             break;
-        case 'stop':			
+        case 'stop':            
             stop(callback);
             callback("Stop Action");
             break;
-        case 'get_position':			
+        case 'get_position':            
             get_position(callback);
             break;
         case 'set_position':
-            var data = url_parts.query["data"];			
+            var data = url_parts.query["data"];         
             set_position(data);
             callback("Set Position Action");
             break;
@@ -319,7 +318,7 @@ function processRequest(request, callback) {
         case 'resume':
             resume();
             break; 
-        case 'get_audio_tracks':	
+        case 'get_audio_tracks':    
             get_audio_tracks(callback);
             break;
         case 'set_audio_track':
