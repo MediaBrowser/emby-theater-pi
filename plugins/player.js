@@ -190,7 +190,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
                 };
                 var playData = JSON.stringify(playRequest);
    
-                sendData("play", playData);
+                sendData("play", playData, playbackStarted);
                 
                 startTimeUpdateInterval(1000);
                 embyRouter.showVideoOsd();
@@ -201,6 +201,13 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
             
             return Promise.resolve();
         };
+
+        function playbackStarted() {
+            //alert(currentPlayOptions.mediaSource.DefaultAudioStreamIndex);
+            if(currentPlayOptions.mediaSource.DefaultAudioStreamIndex && currentPlayOptions.mediaSource.DefaultAudioStreamIndex != -1) {
+                sendData("get_audio_tracks", "", processAudioTrackChange, currentPlayOptions.mediaSource.DefaultAudioStreamIndex.toString());
+            }
+        }
 
         self.currentTime = function (val) {
             //alert("currentTime");
@@ -268,25 +275,31 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         };
 		
 		function processAudioTrackChange(trackData, index) {
-			
-			alert(index);
-			alert(trackData);
+			var mediaSource = JSON.parse(trackData);
+			//alert(mediaSource);
 			
 			var streams = currentPlayOptions.mediaSource.MediaStreams || [];
 			var audioIndex = -1;
 			var i, stream;
+
             for (i = 0; i < streams.length; i++) {
                 stream = streams[i];
-                if (stream.Type === 'Audio') {
+                if (stream.Type == 'Audio') {
                     audioIndex++;
 
-                    if (stream.Index === index) {
+                    if (stream.Index === parseInt(index)) {
                         break;
                     }
                 }
 			}
 			
-			alert(stream);
+			stream = mediaSource[audioIndex];
+			
+			if (stream) {
+				//alert(JSON.stringify(stream));
+				sendData("set_audio_track", stream["id"]);
+			}
+
 		}
 		
 
