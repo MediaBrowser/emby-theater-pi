@@ -190,23 +190,39 @@ function get_audio_tracks(callback) {
         "--dest=org.mpris.MediaPlayer2.omxplayer", 
         "/org/mpris/MediaPlayer2",
         "org.mpris.MediaPlayer2.Player.ListAudio"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
     var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
     
-    runCommand(process, command, arguments, {env: enviroment}, callback, 0);
+    runCommand(process, command, arguments, callback, 0);
 }
 
-function runCommand(process, command, args, env, callback, tryCount) {
+function runCommand(process, command, args, callback, tryCount) {
     console.log("Run Command Try: " + tryCount);
-    process.execFile(command, args, env, function (error, stdout, stderr) {
+
+    var enviroment;
+    try {
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+    }
+    catch(e) {
+        console.log('Address load failed: ' + e);
+
+        if(tryCount < 5) {
+            sleep(2000).then(() => {
+                runCommand(process, command, args, callback, tryCount + 1);
+            });
+        }
+        return;
+    }
+
+    
+    process.execFile(command, args, {env: enviroment}, function (error, stdout, stderr) {
         if (error) {
             console.log('Process closed with error: ' + error);
 
             if(tryCount < 5) {
                 sleep(2000).then(() => {
-                    runCommand(process, command, args, env, callback, tryCount + 1);
+                    runCommand(process, command, args, callback, tryCount + 1);
                 });
             }
         }
@@ -286,49 +302,54 @@ function processRequest(request, callback) {
     var url_parts = url.parse(request.url, true);
     var action = url_parts.host;
 
-    switch (action) {
+    try {
+        switch (action) {
 
-        case 'play':
-            var data = url_parts.query["data"];         
-            play(data, callback);
-            callback("Play Action");
-            break;
-        case 'stop':            
-            stop(callback);
-            callback("Stop Action");
-            break;
-        case 'get_position':            
-            get_position(callback);
-            break;
-        case 'set_position':
-            var data = url_parts.query["data"];         
-            set_position(data);
-            callback("Set Position Action");
-            break;
-        case 'set_alpha':
-            var data = url_parts.query["data"];
-            set_alpha(data);
-            break;
-        case 'pause_toggle':
-            pause_toggle();
-            break;             
-        case 'pause':
-            pause();
-            break; 
-        case 'resume':
-            resume();
-            break; 
-        case 'get_audio_tracks':    
-            get_audio_tracks(callback);
-            break;
-        case 'set_audio_track':
-            var data = url_parts.query["data"];
-            set_audio_track(data);
-            break;
-        default:
-            console.log('playbackhandler:processRequest action unknown : ' + action);
-            callback("");
-            break;
+            case 'play':
+                var data = url_parts.query["data"];         
+                play(data, callback);
+                callback("Play Action");
+                break;
+            case 'stop':            
+                stop(callback);
+                callback("Stop Action");
+                break;
+            case 'get_position':            
+                get_position(callback);
+                break;
+            case 'set_position':
+                var data = url_parts.query["data"];         
+                set_position(data);
+                callback("Set Position Action");
+                break;
+            case 'set_alpha':
+                var data = url_parts.query["data"];
+                set_alpha(data);
+                break;
+            case 'pause_toggle':
+                pause_toggle();
+                break;             
+            case 'pause':
+                pause();
+                break; 
+            case 'resume':
+                resume();
+                break; 
+            case 'get_audio_tracks':    
+                get_audio_tracks(callback);
+                break;
+            case 'set_audio_track':
+                var data = url_parts.query["data"];
+                set_audio_track(data);
+                break;
+            default:
+                console.log('playbackhandler:processRequest action unknown : ' + action);
+                callback("");
+                break;
+        }
+    }
+    catch(e) {
+        console.log("Error in linuxplayer protocol handler: " + e);
     }
 }
 

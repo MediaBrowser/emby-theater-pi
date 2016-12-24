@@ -190,7 +190,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
                 };
                 var playData = JSON.stringify(playRequest);
    
-                sendData("play", playData, playbackStarted);
+                sendData("play", playData, playbackStartedAction);
                 
                 startTimeUpdateInterval(1000);
                 embyRouter.showVideoOsd();
@@ -202,7 +202,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
             return Promise.resolve();
         };
 
-        function playbackStarted() {
+        function playbackStartedAction() {
             //alert(currentPlayOptions.mediaSource.DefaultAudioStreamIndex);
             if(currentPlayOptions.mediaSource.DefaultAudioStreamIndex && currentPlayOptions.mediaSource.DefaultAudioStreamIndex != -1) {
                 sendData("get_audio_tracks", "", processAudioTrackChange, currentPlayOptions.mediaSource.DefaultAudioStreamIndex.toString());
