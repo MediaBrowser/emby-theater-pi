@@ -1,4 +1,4 @@
-define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, pluginManager, events, embyRouter) {
+define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], function (appHost, pluginManager, events, embyRouter, playbackManager) {
     'use strict';
 
     return function () {
@@ -268,7 +268,63 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter'], function (appHost, 
         };
 
         self.setSubtitleStreamIndex = function (index) {
+            // need to check if selected subtitle is external
+            if (index === -1) {
+                return;
+            }
+
+            // See if we have an external text track
+            var track = index === -1 ? null : (currentPlayOptions.mediaSource.MediaStreams || []).filter(function (t) {
+                return t.Type === 'Subtitle' && t.Index === index;
+            })[0];
+
+            if (!track) {
+                console.log('Error: track with index ' + index + ' not found');
+                return;
+            }
+            
+            if (track.DeliveryMethod === 'External') {
+                // process Embedded
+                var serverId = currentPlayOptions.item.ServerId;
+                var externalUrl = playbackManager.getSubtitleUrl(track, serverId);//track.Codec
+                alert(externalUrl);
+                // do the subtitle change
+            }
+            else if (track.DeliveryMethod === 'Embed') {
+                // process Embedded
+                sendData("get_subtitle_tracks", "", processSubtitleEmbeddedChange, index);
+            }
         };
+        
+        function processSubtitleEmbeddedChange(trackData, index) {
+            
+            var subtitles = JSON.parse(trackData);
+            alert(subtitles);
+            
+            var streams = currentPlayOptions.mediaSource.MediaStreams || [];
+
+            var subtitleIndex = -1;
+            var i, stream;
+
+            for (i = 0; i < streams.length; i++) {
+                stream = streams[i];
+                if (stream.Type === 'Subtitle' && stream.DeliveryMethod === 'Embed') {
+                    subtitleIndex++;
+
+                    if (stream.Index === index) {
+                        break;
+                    }
+                }
+            }           
+            
+            stream = subtitles[subtitleIndex];
+            
+            if (stream) {
+                alert(JSON.stringify(stream));
+                sendData("set_subtitle_track", stream["id"]);
+            }           
+            
+        }
 
         self.setAudioStreamIndex = function (index) {
             sendData("get_audio_tracks", "", processAudioTrackChange, index);
