@@ -5,10 +5,24 @@ function play(playData, callback) {
     var playData = JSON.parse(playData);
     console.log('Play URL : ' + playData.url);
     console.log('Play StartTime : ' + playData.startTime);
+    console.log('Play SubtitleUrl : ' + playData.subtitleUrl);
+    console.log('Play SubtitleCodec : ' + playData.subtitleCodec);
 
+    var subtitleFile = null;
+    if(playData.subtitleUrl != null) {
+        subtitleFile = getSubtitleFile(playData.subtitleUrl, playData.subtitleCodec);
+    }
+    
     //--aidx 
-    var args = ["--alpha", "127", "--pos", playData.startTime, playData.url];
-    //args = ["--win", "0 0 300 300", "--alpha", "127", "--pos", playData.startTime, playData.url];
+    var args = ["--alpha", "127", "--pos", playData.startTime];
+    //args.concat(["--win", "0 0 300 300"]);
+
+    if(playData.subtitleUrl != null) {
+        args.push("--subtitles");
+        args.push(subtitleFile);
+    }
+
+    args.push(playData.url);
     
     var path = "omxplayer";
     var process = require('child_process');
@@ -18,6 +32,37 @@ function play(playData, callback) {
         console.log('error: ' + error);
         console.log('stderr: ' + stderr);
     });
+}
+
+function getSubtitleFile(subtitleUrl, codec) {
+
+    var md5 = require('md5');
+    var nameHash = md5(subtitleUrl);
+    var subtitleFileName = '/tmp/subtitles/' + nameHash + "." + codec;
+    console.log('Subtitle Filename: ' + subtitleFileName);
+
+    var fs = require('fs');
+    if (fs.existsSync(subtitleFileName)) {
+        return subtitleFileName;
+    }
+
+    if(fs.existsSync('/tmp/subtitles') == false) {
+        fs.mkdirSync('/tmp/subtitles');
+    }
+
+    // download file
+
+    try {
+        var request = require('sync-request');
+        var res = request('GET', subtitleUrl);
+        var subtitleData = res.getBody();
+        fs.writeFileSync(subtitleFileName, subtitleData);
+    }
+    catch(e) {
+        console.log("Error downloading subtitle file: " + e);
+    }
+
+    return subtitleFileName;
 }
 
 function stop(callback) {
@@ -192,10 +237,10 @@ function get_audio_tracks(callback) {
         "org.mpris.MediaPlayer2.Player.ListAudio"];
     var process = require('child_process');
     
-    runCommand(process, command, arguments, callback, 0);
+    get_audio_tracks_command(process, command, arguments, callback, 0);
 }
 
-function runCommand(process, command, args, callback, tryCount) {
+function get_audio_tracks_command(process, command, args, callback, tryCount) {
     console.log("Run Command Try: " + tryCount);
 
     var enviroment;
@@ -209,20 +254,19 @@ function runCommand(process, command, args, callback, tryCount) {
 
         if(tryCount < 5) {
             sleep(2000).then(() => {
-                runCommand(process, command, args, callback, tryCount + 1);
+                get_audio_tracks_command(process, command, args, callback, tryCount + 1);
             });
         }
         return;
     }
 
-    
     process.execFile(command, args, {env: enviroment}, function (error, stdout, stderr) {
         if (error) {
             console.log('Process closed with error: ' + error);
 
             if(tryCount < 5) {
                 sleep(2000).then(() => {
-                    runCommand(process, command, args, callback, tryCount + 1);
+                    get_audio_tracks_command(process, command, args, callback, tryCount + 1);
                 });
             }
         }
@@ -286,7 +330,159 @@ function set_audio_track(data) {
             console.log('Process closed with error: ' + error);
         }
         else {
-            console.log('Audio Track Select Resut: ' + stdout);
+            console.log('Audio Track Select Result: ' + stdout);
+        }
+    });
+}
+
+function get_subtitle_tracks(callback) {
+
+    var command = "dbus-send";
+    var arguments = [
+        "--print-reply", 
+        "--session",
+        "--reply-timeout=2000",
+        "--dest=org.mpris.MediaPlayer2.omxplayer", 
+        "/org/mpris/MediaPlayer2",
+        "org.mpris.MediaPlayer2.Player.ListSubtitles"];
+    var process = require('child_process');
+    
+    get_subtitle_tracks_command(process, command, arguments, callback, 0);
+}
+
+function get_subtitle_tracks_command(process, command, args, callback, tryCount) {
+    console.log("Run Command Try: " + tryCount);
+
+    var enviroment;
+    try {
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+    }
+    catch(e) {
+        console.log('Address load failed: ' + e);
+
+        if(tryCount < 5) {
+            sleep(2000).then(() => {
+                get_subtitle_tracks_command(process, command, args, callback, tryCount + 1);
+            });
+        }
+        return;
+    }
+
+    process.execFile(command, args, {env: enviroment}, function (error, stdout, stderr) {
+        if (error) {
+            console.log('Process closed with error: ' + error);
+
+            if(tryCount < 5) {
+                sleep(2000).then(() => {
+                    get_subtitle_tracks_command(process, command, args, callback, tryCount + 1);
+                });
+            }
+        }
+        else {
+            console.log('Process stdout: ' + stdout);
+			var start = stdout.indexOf("[");
+			var end = stdout.indexOf("]");
+			if(start > 0 && end > 0 && start < end) {
+				var arrayData = stdout.substring(start+1, end);
+				var streams = [];
+				var lines = arrayData.split("\n");
+				var x;
+				for(x = 0; x < lines.length; x++) {
+					var line = lines[x].trim();
+					if(line.length > 0) {
+						var lineSplit = line.split("\"");
+						console.log(lineSplit);
+						if(lineSplit.length == 3) {
+							var data = lineSplit[1];
+							console.log(data);
+							var bits = data.split(":");
+							var stream = {};
+							stream.id = bits[0];
+							stream.lang = bits[1];
+							stream.name = bits[2];
+							stream.codec = bits[3];
+							stream.active = bits[4];
+							streams.push(stream);
+						}
+					}
+				}
+			
+				var jsonData = JSON.stringify(streams);
+				console.log(jsonData);
+				callback(jsonData);
+			}
+			else {
+				return;
+			}
+        }
+    }); 
+}
+
+function set_subtitle_track(data) {
+    console.log("Setting Subtitle Track: " + data.toString());
+    var command = "dbus-send";
+    var arguments = [
+        "--print-reply=literal", 
+        "--session", 
+        "--dest=org.mpris.MediaPlayer2.omxplayer", 
+        "/org/mpris/MediaPlayer2",
+        "org.mpris.MediaPlayer2.Player.SelectSubtitle",
+        "int32:" + data.toString()];
+    var fs = require('fs');
+    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+    var process = require('child_process');
+    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+    
+    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
+        if (error) {
+            console.log('Process closed with error: ' + error);
+        }
+        else {
+            console.log('Subtitle Track Select Result: ' + stdout);
+        }
+    });
+}
+
+function show_subtitles() {
+    console.log("Show Subtitles");
+    var command = "dbus-send";
+    var arguments = [
+        "--print-reply=literal", 
+        "--session", 
+        "--dest=org.mpris.MediaPlayer2.omxplayer", 
+        "/org/mpris/MediaPlayer2",
+        "org.mpris.MediaPlayer2.Player.ShowSubtitles"];
+    var fs = require('fs');
+    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+    var process = require('child_process');
+    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+    
+    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
+        if (error) {
+            console.log('Process closed with error: ' + error);
+        }
+    });
+}
+
+function hide_subtitles() {
+    console.log("Hide Subtitles");
+    var command = "dbus-send";
+    var arguments = [
+        "--print-reply=literal", 
+        "--session", 
+        "--dest=org.mpris.MediaPlayer2.omxplayer", 
+        "/org/mpris/MediaPlayer2",
+        "org.mpris.MediaPlayer2.Player.HideSubtitles"];
+    var fs = require('fs');
+    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+    var process = require('child_process');
+    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+    
+    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
+        if (error) {
+            console.log('Process closed with error: ' + error);
         }
     });
 }
@@ -342,6 +538,19 @@ function processRequest(request, callback) {
                 var data = url_parts.query["data"];
                 set_audio_track(data);
                 break;
+            case 'get_subtitle_tracks':    
+                get_subtitle_tracks(callback);
+                break;
+            case 'set_subtitle_track':
+                var data = url_parts.query["data"];
+                set_subtitle_track(data);
+                break;
+            case 'show_subtitles':
+                show_subtitles();
+                break;
+            case 'hide_subtitles':
+                hide_subtitles();
+                break; 
             default:
                 console.log('playbackhandler:processRequest action unknown : ' + action);
                 callback("");

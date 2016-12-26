@@ -53,19 +53,18 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             profile.MusicStreamingTranscodingBitrate = 192000;
 
             profile.DirectPlayProfiles = [];
-
+            
             profile.DirectPlayProfiles.push({
                 Container: 'm4v,3gp,ts,mpegts,mov,xvid,vob,mkv,wmv,asf,ogm,ogv,m2v,avi,mpg,mpeg,mp4,webm,wtv,dvr-ms,iso,m2ts',
                 Type: 'Video'
             });
-
             profile.DirectPlayProfiles.push({
                 Container: 'aac,mp3,mpa,wav,wma,mp2,ogg,oga,webma,ape,opus,flac',
                 Type: 'Audio'
             });
-
+            
             profile.TranscodingProfiles = [];
-
+            
             profile.TranscodingProfiles.push({
                 Container: 'mkv',
                 Type: 'Video',
@@ -73,7 +72,6 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 VideoCodec: 'h264',
                 Context: 'Streaming'
             });
-
             profile.TranscodingProfiles.push({
                 Container: 'mp3',
                 Type: 'Audio',
@@ -81,7 +79,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 Context: 'Streaming',
                 Protocol: 'http'
             });
-
+            
             profile.ContainerProfiles = [];
 
             profile.CodecProfiles = [];
@@ -89,6 +87,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             // Subtitle profiles
             // External vtt or burn in
             profile.SubtitleProfiles = [];
+
             profile.SubtitleProfiles.push({
                 Format: 'srt',
                 Method: 'External'
@@ -149,7 +148,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 Format: 'smi',
                 Method: 'Embed'
             });
-
+            
             profile.ResponseProfiles = [];
 
             return Promise.resolve(profile);
@@ -186,7 +185,9 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 
                 var playRequest = {
                     url: options.url,
-                    startTime: startTimeString
+                    startTime: startTimeString,
+                    subtitleUrl: null,
+                    subtitleCodec: null
                 };
                 var playData = JSON.stringify(playRequest);
    
@@ -270,6 +271,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
         self.setSubtitleStreamIndex = function (index) {
             // need to check if selected subtitle is external
             if (index === -1) {
+                sendData("hide_subtitles");
                 return;
             }
 
@@ -284,22 +286,39 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             }
             
             if (track.DeliveryMethod === 'External') {
-                // process Embedded
+                // process External
                 var serverId = currentPlayOptions.item.ServerId;
-                var externalUrl = playbackManager.getSubtitleUrl(track, serverId);//track.Codec
-                alert(externalUrl);
+                var externalUrl = playbackManager.getSubtitleUrl(track, serverId);
+                //alert(externalUrl);
+                
+                sendData("stop");
+
+                var startTime = new Date(null);
+                startTime.setSeconds(playbackPosition / 1000000);
+                var startTimeString = startTime.toISOString().substr(11, 8);
+                var playRequest = {
+                    url: currentPlayOptions.url,
+                    startTime: startTimeString,
+                    subtitleUrl: externalUrl,
+                    subtitleCodec: track.Codec
+                };
+                var playData = JSON.stringify(playRequest);
+   
+                sendData("play", playData, playbackStartedAction); 
+                
                 // do the subtitle change
             }
             else if (track.DeliveryMethod === 'Embed') {
                 // process Embedded
                 sendData("get_subtitle_tracks", "", processSubtitleEmbeddedChange, index);
+                sendData("show_subtitles");
             }
         };
         
         function processSubtitleEmbeddedChange(trackData, index) {
             
             var subtitles = JSON.parse(trackData);
-            alert(subtitles);
+            //alert(subtitles);
             
             var streams = currentPlayOptions.mediaSource.MediaStreams || [];
 
@@ -320,7 +339,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             stream = subtitles[subtitleIndex];
             
             if (stream) {
-                alert(JSON.stringify(stream));
+                //alert(JSON.stringify(stream));
                 sendData("set_subtitle_track", stream["id"]);
             }           
             
