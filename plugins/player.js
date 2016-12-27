@@ -148,7 +148,6 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 Format: 'smi',
                 Method: 'Embed'
             });
-            
             profile.ResponseProfiles = [];
 
             return Promise.resolve(profile);
@@ -174,10 +173,13 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 sendData("set_position", (options.playerStartPositionTicks / 10));
             }
             else {
-                currentPlayOptions = options;
 
-                //var isVideo = options.mimeType.toLowerCase('video').indexOf() == 0;
-                //var isVideo = options.item.MediaType == 'Video';
+                if(currentPlayOptions != null && currentPlayOptions.url != options.url) {
+                    // we were already playing but the url changed so need to stop first
+                    sendData("stop");
+                }
+                
+                currentPlayOptions = options;
    
                 var startTime = new Date(null);
                 startTime.setSeconds((options.playerStartPositionTicks || 0) / 10000000);
@@ -238,6 +240,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
 
         self.destroy = function () {
             //alert("destroy");
+            currentPlayOptions = null;
             embyRouter.setTransparency('none');
         };
 
