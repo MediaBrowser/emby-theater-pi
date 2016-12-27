@@ -408,9 +408,17 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
         }
         
         function updatePlayerPosition(data) {
-            //alert("Doing Timed Update: " + data);
-            playbackPosition = parseInt(data);
-            events.trigger(self, 'timeupdate');
+            try {
+                //alert("Doing Timed Update: " + data);
+                var newPosition = parseInt(data);
+                if(newPosition > 0) {
+                    playbackPosition = newPosition;
+                    events.trigger(self, 'timeupdate');
+                }
+            }
+            catch(e) {
+                console.log("ERROR - updatePlayerPosition: " + e);
+            }
         }
         
                 

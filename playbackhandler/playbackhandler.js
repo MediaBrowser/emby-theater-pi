@@ -28,201 +28,207 @@ function play(playData, callback) {
     var process = require('child_process');
     process.execFile(path, args, {}, function (error, stdout, stderr) {
         console.log('Player Closed');
-        console.log('stdout: ' + stdout);
-        console.log('error: ' + error);
-        console.log('stderr: ' + stderr);
+        console.log('Player Closed: ' + args);
+        console.log('Player Closed - stdout: ' + stdout);
+        //console.log('Player Closed - error: ' + error);
+        //console.log('Player Closed - stderr: ' + stderr);
     });
 }
 
 function getSubtitleFile(subtitleUrl, codec) {
 
-    var md5 = require('md5');
-    var nameHash = md5(subtitleUrl);
-    var subtitleFileName = '/tmp/subtitles/' + nameHash + "." + codec;
-    console.log('Subtitle Filename: ' + subtitleFileName);
-
-    var fs = require('fs');
-    if (fs.existsSync(subtitleFileName)) {
-        return subtitleFileName;
-    }
-
-    if(fs.existsSync('/tmp/subtitles') == false) {
-        fs.mkdirSync('/tmp/subtitles');
-    }
-
-    // download file
-
+    var subtitleFileName = "";
     try {
+        var md5 = require('md5');
+        var nameHash = md5(subtitleUrl);
+        subtitleFileName = '/tmp/subtitles/' + nameHash + "." + codec;
+        console.log('Subtitle Filename: ' + subtitleFileName);
+
+        var fs = require('fs');
+        if (fs.existsSync(subtitleFileName)) {
+            return subtitleFileName;
+        }
+
+        if(fs.existsSync('/tmp/subtitles') == false) {
+            fs.mkdirSync('/tmp/subtitles');
+        }
+
+        // download file
         var request = require('sync-request');
         var res = request('GET', subtitleUrl);
         var subtitleData = res.getBody();
         fs.writeFileSync(subtitleFileName, subtitleData);
     }
     catch(e) {
-        console.log("Error downloading subtitle file: " + e);
+        console.log("ERROR - downloading subtitle file: " + e);
+        subtitleFileName = "error";
     }
 
     return subtitleFileName;
 }
 
-function stop(callback) {
-    
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.Stop"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+function stop() {
+
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.Stop"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Stop Process: " + e);
+    }
 }
 
 function pause() {
-    
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.Pause"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.Pause"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Pause Process: " + e);
+    }    
 }
 
 function pause_toggle() {
+
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.PlayPause"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
     
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.PlayPause"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Pause Toggle Process: " + e);
+    }       
 }
 
 function resume() {
-    
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.Play"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.Play"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Resume Process: " + e);
+    }     
 }
 
 function get_position(callback) {
 
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session",
-        "--reply-timeout=1000",
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.freedesktop.DBus.Properties.Get", 
-        "string:org.mpris.MediaPlayer2.Player",
-        "string:Position"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-        else {
-            //console.log('Process stdout: ' + stdout);
-            var bits = stdout.trim().split(" ");
-            //console.log('get_position Data: ' + bits[1]);
-            callback(bits[1]);
-        }
-    });         
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session",
+            "--reply-timeout=1000",
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.freedesktop.DBus.Properties.Get", 
+            "string:org.mpris.MediaPlayer2.Player",
+            "string:Position"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+
+        var result = process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+        //console.log('Process stdout: ' + result.toString());
+        var bits = result.toString().trim().split(" ");
+        callback(bits[1]);
+    }
+    catch(e) {
+        console.log("ERROR - Get Position Process: " + e);
+    }
 }
 
 function set_position(data) {
-    
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.SetPosition",
-        "objpath:/not/used",
-        "int64:" + data.toString()];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.SetPosition",
+            "objpath:/not/used",
+            "int64:" + data.toString()];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Set Position Process: " + e);
+    }    
 }
 
 function set_alpha(data) {
 
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.SetAlpha",
-        "objpath:/not/used",
-        "int64:" + data.toString()];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+    try {
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.SetAlpha",
+            "objpath:/not/used",
+            "int64:" + data.toString()];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Set Alpha Process: " + e);
+    }      
 }
 
 function get_audio_tracks(callback) {
@@ -311,28 +317,28 @@ function get_audio_tracks_command(process, command, args, callback, tryCount) {
 }
 
 function set_audio_track(data) {
-    console.log("Setting Audio Track: " + data.toString());
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.SelectAudio",
-        "int32:" + data.toString()];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-        else {
-            console.log('Audio Track Select Result: ' + stdout);
-        }
-    });
+
+    try {
+        console.log("Setting Audio Track: " + data.toString());
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.SelectAudio",
+            "int32:" + data.toString()];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        var result = process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+        console.log('Audio Track Select Result: ' + result);
+    }
+    catch(e) {
+        console.log("ERROR - Set Audio Track Process: " + e);
+    }  
 }
 
 function get_subtitle_tracks(callback) {
@@ -421,70 +427,74 @@ function get_subtitle_tracks_command(process, command, args, callback, tryCount)
 }
 
 function set_subtitle_track(data) {
-    console.log("Setting Subtitle Track: " + data.toString());
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.SelectSubtitle",
-        "int32:" + data.toString()];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-        else {
-            console.log('Subtitle Track Select Result: ' + stdout);
-        }
-    });
+
+    try {
+        console.log("Setting Subtitle Track: " + data.toString());
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.SelectSubtitle",
+            "int32:" + data.toString()];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        var result = process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+        console.log('Subtitle Track Select Result: ' + result);
+    }
+    catch(e) {
+        console.log("ERROR - Set Subtitle Track Process: " + e);
+    }      
 }
 
 function show_subtitles() {
-    console.log("Show Subtitles");
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.ShowSubtitles"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+
+    try {
+        console.log("Show Subtitles");
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.ShowSubtitles"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Show Subtitles Process: " + e);
+    }      
 }
 
 function hide_subtitles() {
-    console.log("Hide Subtitles");
-    var command = "dbus-send";
-    var arguments = [
-        "--print-reply=literal", 
-        "--session", 
-        "--dest=org.mpris.MediaPlayer2.omxplayer", 
-        "/org/mpris/MediaPlayer2",
-        "org.mpris.MediaPlayer2.Player.HideSubtitles"];
-    var fs = require('fs');
-    var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
-    var process = require('child_process');
-    var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
-    
-    process.execFile(command, arguments, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-        }
-    });
+
+    try {
+        console.log("Hide Subtitles");
+        var command = "dbus-send";
+        var arguments = [
+            "--print-reply=literal", 
+            "--session", 
+            "--dest=org.mpris.MediaPlayer2.omxplayer", 
+            "/org/mpris/MediaPlayer2",
+            "org.mpris.MediaPlayer2.Player.HideSubtitles"];
+        var fs = require('fs');
+        var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
+        var process = require('child_process');
+        var enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+        
+        process.execFileSync(command, arguments, {env: enviroment, timeout:5000});
+    }
+    catch(e) {
+        console.log("ERROR - Hide Subtitles Process: " + e);
+    }      
 }
 
 function sleep(time) {
@@ -507,7 +517,7 @@ function processRequest(request, callback) {
                 callback("Play Action");
                 break;
             case 'stop':            
-                stop(callback);
+                stop();
                 callback("Stop Action");
                 break;
             case 'get_position':            
@@ -553,12 +563,11 @@ function processRequest(request, callback) {
                 break; 
             default:
                 console.log('playbackhandler:processRequest action unknown : ' + action);
-                callback("");
                 break;
         }
     }
     catch(e) {
-        console.log("Error in linuxplayer protocol handler: " + e);
+        console.log("Error in linuxplayer protocol handler:\n" + e.stack);
     }
 }
 
