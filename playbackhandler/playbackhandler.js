@@ -254,9 +254,50 @@ function get_audio_tracks_command(process, command, args, callback, tryCount) {
         var fs = require('fs');
         var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
         enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+
+        var results = process.execFileSync(command, args, {env: enviroment, timeout:5000});
+
+        var stdout = results.toString();
+        //console.log('Process stdout: ' + stdout);
+        var start = stdout.indexOf("[");
+        var end = stdout.indexOf("]");
+        if(start > 0 && end > 0 && start < end) {
+            var arrayData = stdout.substring(start+1, end);
+            var streams = [];
+            var lines = arrayData.split("\n");
+            var x;
+            for(x = 0; x < lines.length; x++) {
+                var line = lines[x].trim();
+                if(line.length > 0) {
+                    var lineSplit = line.split("\"");
+                    //console.log(lineSplit);
+                    if(lineSplit.length == 3) {
+                        var data = lineSplit[1];
+                        //console.log(data);
+                        var bits = data.split(":");
+                        var stream = {};
+                        stream.id = bits[0];
+                        stream.lang = bits[1];
+                        stream.name = bits[2];
+                        stream.codec = bits[3];
+                        stream.active = bits[4];
+                        streams.push(stream);
+                    }
+                }
+            }
+        
+            var jsonData = JSON.stringify(streams);
+            console.log(jsonData);
+            callback(jsonData);
+        }
+        else {
+            return;
+        }
+
     }
     catch(e) {
-        console.log('Address load failed: ' + e);
+        //console.log('ERROR - get_audio_tracks_command:\n' + e.stack);
+        console.log('ERROR - get_audio_tracks_command: ' + e);
 
         if(tryCount < 5) {
             sleep(2000).then(() => {
@@ -265,55 +306,6 @@ function get_audio_tracks_command(process, command, args, callback, tryCount) {
         }
         return;
     }
-
-    process.execFile(command, args, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-
-            if(tryCount < 5) {
-                sleep(2000).then(() => {
-                    get_audio_tracks_command(process, command, args, callback, tryCount + 1);
-                });
-            }
-        }
-        else {
-            console.log('Process stdout: ' + stdout);
-			var start = stdout.indexOf("[");
-			var end = stdout.indexOf("]");
-			if(start > 0 && end > 0 && start < end) {
-				var arrayData = stdout.substring(start+1, end);
-				var streams = [];
-				var lines = arrayData.split("\n");
-				var x;
-				for(x = 0; x < lines.length; x++) {
-					var line = lines[x].trim();
-					if(line.length > 0) {
-						var lineSplit = line.split("\"");
-						console.log(lineSplit);
-						if(lineSplit.length == 3) {
-							var data = lineSplit[1];
-							console.log(data);
-							var bits = data.split(":");
-							var stream = {};
-							stream.id = bits[0];
-							stream.lang = bits[1];
-							stream.name = bits[2];
-							stream.codec = bits[3];
-							stream.active = bits[4];
-							streams.push(stream);
-						}
-					}
-				}
-			
-				var jsonData = JSON.stringify(streams);
-				console.log(jsonData);
-				callback(jsonData);
-			}
-			else {
-				return;
-			}
-        }
-    }); 
 }
 
 function set_audio_track(data) {
@@ -364,9 +356,50 @@ function get_subtitle_tracks_command(process, command, args, callback, tryCount)
         var fs = require('fs');
         var address = fs.readFileSync('/tmp/omxplayerdbus.pi', 'ascii').trim();
         enviroment = {DBUS_SESSION_BUS_ADDRESS: address};
+
+        var results = process.execFileSync(command, args, {env: enviroment, timeout:5000});
+
+        var stdout = results.toString();
+        //console.log('Process stdout: ' + stdout);
+        var start = stdout.indexOf("[");
+        var end = stdout.indexOf("]");
+        if(start > 0 && end > 0 && start < end) {
+            var arrayData = stdout.substring(start+1, end);
+            var streams = [];
+            var lines = arrayData.split("\n");
+            var x;
+            for(x = 0; x < lines.length; x++) {
+                var line = lines[x].trim();
+                if(line.length > 0) {
+                    var lineSplit = line.split("\"");
+                    //console.log(lineSplit);
+                    if(lineSplit.length == 3) {
+                        var data = lineSplit[1];
+                        //console.log(data);
+                        var bits = data.split(":");
+                        var stream = {};
+                        stream.id = bits[0];
+                        stream.lang = bits[1];
+                        stream.name = bits[2];
+                        stream.codec = bits[3];
+                        stream.active = bits[4];
+                        streams.push(stream);
+                    }
+                }
+            }
+        
+            var jsonData = JSON.stringify(streams);
+            console.log(jsonData);
+            callback(jsonData);
+        }
+        else {
+            return;
+        }
+
     }
     catch(e) {
-        console.log('Address load failed: ' + e);
+        console.log('ERROR - get_subtitle_tracks_command:\n' + e.stack);
+        //console.log('ERROR - get_subtitle_tracks_command: ' + e);
 
         if(tryCount < 5) {
             sleep(2000).then(() => {
@@ -375,55 +408,6 @@ function get_subtitle_tracks_command(process, command, args, callback, tryCount)
         }
         return;
     }
-
-    process.execFile(command, args, {env: enviroment}, function (error, stdout, stderr) {
-        if (error) {
-            console.log('Process closed with error: ' + error);
-
-            if(tryCount < 5) {
-                sleep(2000).then(() => {
-                    get_subtitle_tracks_command(process, command, args, callback, tryCount + 1);
-                });
-            }
-        }
-        else {
-            console.log('Process stdout: ' + stdout);
-			var start = stdout.indexOf("[");
-			var end = stdout.indexOf("]");
-			if(start > 0 && end > 0 && start < end) {
-				var arrayData = stdout.substring(start+1, end);
-				var streams = [];
-				var lines = arrayData.split("\n");
-				var x;
-				for(x = 0; x < lines.length; x++) {
-					var line = lines[x].trim();
-					if(line.length > 0) {
-						var lineSplit = line.split("\"");
-						console.log(lineSplit);
-						if(lineSplit.length == 3) {
-							var data = lineSplit[1];
-							console.log(data);
-							var bits = data.split(":");
-							var stream = {};
-							stream.id = bits[0];
-							stream.lang = bits[1];
-							stream.name = bits[2];
-							stream.codec = bits[3];
-							stream.active = bits[4];
-							streams.push(stream);
-						}
-					}
-				}
-			
-				var jsonData = JSON.stringify(streams);
-				console.log(jsonData);
-				callback(jsonData);
-			}
-			else {
-				return;
-			}
-        }
-    }); 
 }
 
 function set_subtitle_track(data) {
