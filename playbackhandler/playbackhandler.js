@@ -14,10 +14,12 @@ function play(playData, callback) {
         subtitleFile = getSubtitleFile(playData.subtitleUrl, playData.subtitleCodec);
     }
     
-    var args = ["--alpha", "100"];
-	args.concat(["--pos", playData.startTime]);
+    var args = ["--alpha", "90"];
+    args.push("--pos");
+    args.push(playData.startTime);
 	
-    //args.concat(["--win", "0 0 300 300"]);
+    //args.push("--win");
+    //args.push("0 0 300 300");
 
 	// add live option for live streams
 	if(playData.liveStream) {
@@ -26,11 +28,13 @@ function play(playData, callback) {
 	
 	// add subtitle file if supplied
     if(playData.subtitleUrl != null) {
-        args.concat(["--subtitles", subtitleFile]);
+        args.push("--subtitles");
+        args.push(subtitleFile);
     }
 
 	// add the play url
     args.push(playData.url);
+    //console.log(args);
     
     var path = "omxplayer";
     var process = require('child_process');
