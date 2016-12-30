@@ -18,7 +18,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
         document.addEventListener('video-osd-show', function () {
             //alert("OSD Shown");
             startTimeUpdateInterval(1000);
-            sendData("set_alpha", 127);
+            sendData("set_alpha", 90);
         });
         
         document.addEventListener('video-osd-hide', function () {
@@ -64,7 +64,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             });
             
             profile.TranscodingProfiles = [];
-            
+            /*
             profile.TranscodingProfiles.push({
                 Container: 'ts',
                 Type: 'Video',
@@ -74,6 +74,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 Protocol: 'hls',
                 MaxAudioChannels: '6'
             });
+            */
             profile.TranscodingProfiles.push({
                 Container: 'mkv',
                 Type: 'Video',
