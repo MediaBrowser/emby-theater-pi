@@ -34,7 +34,7 @@ function play(playData, callback) {
 
 	// add the play url
     args.push(playData.url);
-    //console.log(args);
+    console.log(args);
     
     var path = "omxplayer";
     var process = require('child_process');
