@@ -194,12 +194,18 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 var startTime = new Date(null);
                 startTime.setSeconds((options.playerStartPositionTicks || 0) / 10000000);
                 var startTimeString = startTime.toISOString().substr(11, 8);
+				
+				var liveStream = true;
+				if (options.mediaSource.RunTimeTicks) {
+					liveStream = false;
+				}
                 
                 var playRequest = {
                     url: options.url,
                     startTime: startTimeString,
                     subtitleUrl: null,
-                    subtitleCodec: null
+                    subtitleCodec: null,
+					liveStream: liveStream
                 };
                 var playData = JSON.stringify(playRequest);
    
@@ -309,11 +315,18 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 var startTime = new Date(null);
                 startTime.setSeconds(playbackPosition / 1000000);
                 var startTimeString = startTime.toISOString().substr(11, 8);
+				
+				var liveStream = true;
+				if (currentPlayOptions.mediaSource.RunTimeTicks) {
+					liveStream = false;
+				}
+				
                 var playRequest = {
                     url: currentPlayOptions.url,
                     startTime: startTimeString,
                     subtitleUrl: externalUrl,
-                    subtitleCodec: track.Codec
+                    subtitleCodec: track.Codec,
+					liveStream: liveStream
                 };
                 var playData = JSON.stringify(playRequest);
    

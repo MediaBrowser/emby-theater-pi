@@ -7,21 +7,29 @@ function play(playData, callback) {
     console.log('Play StartTime : ' + playData.startTime);
     console.log('Play SubtitleUrl : ' + playData.subtitleUrl);
     console.log('Play SubtitleCodec : ' + playData.subtitleCodec);
+	console.log('Play LiveStream : ' + playData.liveStream);
 
     var subtitleFile = null;
     if(playData.subtitleUrl != null) {
         subtitleFile = getSubtitleFile(playData.subtitleUrl, playData.subtitleCodec);
     }
     
-    //--aidx 
-    var args = ["--alpha", "127", "--pos", playData.startTime];
+    var args = ["--alpha", "100"];
+	args.concat(["--pos", playData.startTime]);
+	
     //args.concat(["--win", "0 0 300 300"]);
 
+	// add live option for live streams
+	if(playData.liveStream) {
+		args.push("--live");
+	}
+	
+	// add subtitle file if supplied
     if(playData.subtitleUrl != null) {
-        args.push("--subtitles");
-        args.push(subtitleFile);
+        args.concat(["--subtitles", subtitleFile]);
     }
 
+	// add the play url
     args.push(playData.url);
     
     var path = "omxplayer";
