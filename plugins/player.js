@@ -66,11 +66,21 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             profile.TranscodingProfiles = [];
             
             profile.TranscodingProfiles.push({
+                Container: 'ts',
+                Type: 'Video',
+                AudioCodec: 'mp3,ac3,aac',
+                VideoCodec: 'h264',
+                Context: 'Streaming',
+                Protocol: 'hls',
+                MaxAudioChannels: '6'
+            });
+            profile.TranscodingProfiles.push({
                 Container: 'mkv',
                 Type: 'Video',
                 AudioCodec: 'mp3,ac3,aac',
                 VideoCodec: 'h264',
-                Context: 'Streaming'
+                Context: 'Streaming',
+                MaxAudioChannels: '6'
             });
             profile.TranscodingProfiles.push({
                 Container: 'mp3',
