@@ -46,7 +46,7 @@
         var features = [
             'windowstate',
             'exit',
-            'runatstartup',
+            //'runatstartup',
             'filedownload',
             'sharing',
             'externallinks',
@@ -76,12 +76,12 @@
         features.push('htmlaudioautoplay');
         features.push('htmlvideoautoplay');
         features.push('fullscreenchange');
-        features.push('displayableversion');
+        //features.push('displayableversion');
 
         //features.push('remotecontrol');
 
         features.push('multiserver');
-        features.push('imageanalysis');
+        //features.push('imageanalysis');
 
         return features;
     }();
