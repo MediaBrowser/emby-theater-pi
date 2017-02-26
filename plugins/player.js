@@ -192,9 +192,20 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
                 
                 currentPlayOptions = options;
    
-                var startTime = new Date(null);
-                startTime.setSeconds((options.playerStartPositionTicks || 0) / 10000000);
-                var startTimeString = startTime.toISOString().substr(11, 8);
+				var totalSeconds = (options.playerStartPositionTicks || 0) / 10000000;
+				var hours = Math.floor(totalSeconds / 3600);
+				totalSeconds %= 3600;
+				var minutes = Math.floor(totalSeconds / 60);
+				var seconds = totalSeconds % 60;
+				var startTimeString = ("0" + hours).slice(-2) + ":" + ("0" + minutes).slice(-2) + ":" + ("0" + seconds).slice(-2);
+				
+                //var startTime = new Date(null);
+                //startTime.setHours(0);
+                //startTime.setMinutes(0);
+                //startTime.setSeconds(0);
+                //startTime.setMilliseconds(0);
+                //startTime.setSeconds((options.playerStartPositionTicks || 0) / 10000000);
+                //var startTimeString = startTime.toISOString().substr(11, 8);
 				
 				var liveStream = true;
 				if (options.mediaSource.RunTimeTicks) {
