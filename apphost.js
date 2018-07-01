@@ -183,6 +183,11 @@
                 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no';
 
             document.querySelector('meta[name=viewport]').setAttribute('content', att);
+        },
+
+        deviceIconUrl: function () {
+
+            return 'https://github.com/MediaBrowser/Emby.Resources/raw/master/images/devices/raspberrypi.png';
         }
     };
 });
