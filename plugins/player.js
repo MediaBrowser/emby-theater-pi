@@ -1,4 +1,4 @@
-define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], function (appHost, pluginManager, events, embyRouter, playbackManager) {
+define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager', 'connectionManager'], function (appHost, pluginManager, events, embyRouter, playbackManager, connectionManager) {
     'use strict';
 
     return function () {
@@ -43,7 +43,7 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             return true;
         };
 
-        self.getDeviceProfile = function () {
+        self.getDeviceProfile = function (item) {
             //alert("getDeviceProfile");
             
             var profile = {};
@@ -53,26 +53,42 @@ define(['apphost', 'pluginManager', 'events', 'embyRouter', 'playbackManager'], 
             profile.MusicStreamingTranscodingBitrate = 192000;
 
             profile.DirectPlayProfiles = [];
-            
+
+            // leave container null for all
             profile.DirectPlayProfiles.push({
-                Container: 'm4v,3gp,ts,mpegts,mov,xvid,vob,mkv,wmv,asf,ogm,ogv,m2v,avi,mpg,mpeg,mp4,webm,wtv,dvr-ms,iso,m2ts',
                 Type: 'Video'
             });
-            profile.DirectPlayProfiles.push({
-                Container: 'aac,mp3,mpa,wav,wma,mp2,ogg,oga,webma,ape,opus,flac',
-                Type: 'Audio'
-            });
+
+            var apiClient = item && item.ServerId ? connectionManager.getApiClient(item.ServerId) : null;
+            var supportsEmptyContainer = apiClient ? apiClient.isMinServerVersion('3.2.60.1') : false;
+
+            if (supportsEmptyContainer) {
+                // leave container null for all
+                profile.DirectPlayProfiles.push({
+                    Type: 'Audio'
+                });
+            }
+            else {
+                // for older servers that don't support leaving container blank
+                profile.DirectPlayProfiles.push({
+                    Container: 'aac,mp3,mpa,wav,wma,mp2,ogg,oga,webma,ape,opus,alac,flac,m4a',
+                    Type: 'Audio'
+                });
+            }
             
             profile.TranscodingProfiles = [];
             /*
             profile.TranscodingProfiles.push({
                 Container: 'ts',
                 Type: 'Video',
-                AudioCodec: 'mp3,ac3,aac',
-                VideoCodec: 'h264',
+                AudioCodec: 'ac3,mp3,aac',
+                VideoCodec: 'h264,mpeg2video,hevc',
                 Context: 'Streaming',
                 Protocol: 'hls',
-                MaxAudioChannels: '6'
+                MaxAudioChannels: '6',
+                MinSegments: '1',
+                BreakOnNonKeyFrames: true,
+                SegmentLength: '3'
             });
             */
             profile.TranscodingProfiles.push({
